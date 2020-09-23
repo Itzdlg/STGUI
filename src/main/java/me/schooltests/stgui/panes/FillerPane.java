@@ -2,6 +2,8 @@ package me.schooltests.stgui.panes;
 
 import me.schooltests.stgui.data.GUIItem;
 import me.schooltests.stgui.data.GUIPosition;
+import me.schooltests.stgui.guis.GUI;
+import me.schooltests.stgui.util.Util;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -74,5 +76,39 @@ public class FillerPane extends Pane {
 
     public List<GUIItem> getItems() {
         return items;
+    }
+
+    private final DrawHandler handler = new DrawHandler() {
+        @Override
+        public List<Integer> drawPane(GUI gui) {
+            List<Integer> list = new ArrayList<>();
+            int pos = 0;
+            for (int i : Util.getSlots(FillerPane.this, gui.getRows(), gui.getCols())) {
+                if (items.size() <= pos)
+                    pos = 0;
+                GUIItem item = items.get(pos);
+
+                gui.getInventory().setItem(i, item.getItem());
+                list.add(i);
+                pos++;
+            }
+
+            return list;
+        }
+
+        @Override
+        public void setItem(GUI gui, GUIItem item, int guiSlot, int paneSlot) {
+            items.set(paneSlot % items.size(), item);
+        }
+
+        @Override
+        public GUIItem getItem(GUI gui, int guiSlot, int paneSlot) {
+            return items.get(paneSlot % items.size());
+        }
+    };
+
+    @Override
+    public DrawHandler getHandler() {
+        return handler;
     }
 }

@@ -47,8 +47,6 @@ public final class STGUI implements Listener {
                 if (!(event.getWhoClicked() instanceof Player)) return;
                 Player player = (Player) event.getWhoClicked();
                 GUI gui = OPENED.get(player);
-                System.out.println("Slot - " + event.getSlot());
-                System.out.println("Raw Slot - " + event.getRawSlot());
                 if (gui == null
                         || event.getSlot() < 0
                         || event.getRawSlot() > (gui.getInventory().getSize())

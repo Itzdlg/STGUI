@@ -3,6 +3,7 @@ package me.schooltests.stgui.panes;
 import me.schooltests.stgui.data.GUIItem;
 import me.schooltests.stgui.data.GUIPosition;
 import me.schooltests.stgui.guis.GUI;
+import me.schooltests.stgui.util.Util;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
@@ -11,8 +12,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class PaginatedPane extends Pane {
-    private final GUI gui;
-
     private GUIPosition position;
     private List<GUIItem> items = new ArrayList<>();
     private int page = 0;
@@ -20,8 +19,7 @@ public class PaginatedPane extends Pane {
     private int rows;
     private int cols;
 
-    public PaginatedPane(GUI gui, int rows, int cols, GUIPosition position) {
-        this.gui = gui;
+    public PaginatedPane(int rows, int cols, GUIPosition position) {
         this.rows = rows;
         this.cols = cols;
         this.position = position;
@@ -100,14 +98,12 @@ public class PaginatedPane extends Pane {
     public void forward() {
         if (hasNext()) {
             page++;
-            gui.draw();
         }
     }
 
     public void backward() {
         if (hasLast()) {
             page--;
-            gui.draw();
         }
     }
 
@@ -125,5 +121,39 @@ public class PaginatedPane extends Pane {
 
     public void setPage(int page) {
         this.page = page;
+    }
+
+    private final DrawHandler handler = new DrawHandler() {
+        @Override
+        public List<Integer> drawPane(GUI gui) {
+            List<Integer> list = new ArrayList<>();
+            if (items.isEmpty()) return list;
+
+            List<Integer> slots = Util.getSlots(PaginatedPane.this, gui.getRows(), gui.getCols());
+            List<GUIItem> pageItems = getPageItems(page);
+            for (int i : slots) {
+                if (pageItems.size() <= slots.indexOf(i)) break;
+                GUIPosition pos = Util.getPanePositionFromSlot(PaginatedPane.this, i, gui.getRows(), gui.getCols());
+                gui.getInventory().setItem(i, pageItems.get(slots.indexOf(i)).getItem());
+                list.add(i);
+            }
+
+            return list;
+        }
+
+        @Override
+        public void setItem(GUI gui, GUIItem item, int guiSlot, int paneSlot) {
+            items.set(paneSlot + (rows * cols * page), item);
+        }
+
+        @Override
+        public GUIItem getItem(GUI gui, int guiSlot, int paneSlot) {
+            return getPageItems(page).get(paneSlot);
+        }
+    };
+
+    @Override
+    public DrawHandler getHandler() {
+        return handler;
     }
 }

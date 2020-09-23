@@ -4,9 +4,6 @@ import me.schooltests.stgui.STGUI;
 import me.schooltests.stgui.data.DataHolder;
 import me.schooltests.stgui.data.GUIItem;
 import me.schooltests.stgui.data.GUIPosition;
-import me.schooltests.stgui.util.Util;
-import me.schooltests.stgui.panes.FillerPane;
-import me.schooltests.stgui.panes.PaginatedPane;
 import me.schooltests.stgui.panes.Pane;
 import me.schooltests.stgui.panes.StaticPane;
 import org.bukkit.Bukkit;
@@ -17,7 +14,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,56 +106,15 @@ public abstract class GUI extends DataHolder {
         for (int priority : getPaneMap().keySet().stream().sorted().collect(Collectors.toList())) {
             Set<Pane> set = getPaneMap().get(priority);
             for (Pane pane : set) {
-                drawPane(pane);
+                for (int i : pane.getHandler().drawPane(this)) {
+                    addSlotToCache(pane, i);
+                }
             }
         }
 
         if (reopen && !toReopen.isEmpty()) {
             for (Player p : toReopen) {
                 p.openInventory(inventory);
-            }
-        }
-    }
-
-    private void drawPane(Pane pane) {
-        if (pane instanceof FillerPane) {
-            FillerPane fillerPane = (FillerPane) pane;
-            if (fillerPane.getItems().isEmpty()) return;
-
-            int pos = 0;
-            for (int i : Util.getSlots(fillerPane, rows, cols)) {
-                if (fillerPane.getItems().size() <= pos)
-                    pos = 0;
-                GUIItem item = fillerPane.getItems().get(pos);
-
-                inventory.setItem(i, item.getItem());
-                addSlotToCache(pane, i);
-                pos++;
-            }
-        } else if (pane instanceof StaticPane) {
-            StaticPane staticPane = (StaticPane) pane;
-            if (staticPane.getItems().isEmpty()) return;
-
-            List<Integer> slots = Util.getSlots(staticPane, rows, cols);
-            for (int i : slots) {
-                GUIPosition pos = getPanePositionFromSlot(pane, i); 
-                if (staticPane.getItems().containsKey(pos)) {
-                    GUIItem item = staticPane.getItems().get(pos);
-                    inventory.setItem(i, item.getItem()); 
-                    addSlotToCache(pane, i); 
-                }
-            }
-        } else if (pane instanceof PaginatedPane) {
-            PaginatedPane paginatedPane = (PaginatedPane) pane;
-            if (paginatedPane.getItems().isEmpty()) return;
-
-            List<Integer> slots = Util.getSlots(paginatedPane, rows, cols);
-            List<GUIItem> pageItems = paginatedPane.getPageItems(paginatedPane.getPage());
-            for (int i : slots) { 
-                if (pageItems.size() <= slots.indexOf(i)) break; 
-                GUIPosition pos = getPanePositionFromSlot(pane, i); 
-                inventory.setItem(i, pageItems.get(slots.indexOf(i)).getItem()); 
-                addSlotToCache(pane, i); 
             }
         }
     }
@@ -181,18 +136,7 @@ public abstract class GUI extends DataHolder {
         int paneSlot = paneSlots.get(pane).indexOf(slot);
         if (paneSlot == -1) return null;
 
-        if (pane instanceof FillerPane) {
-            FillerPane fillerPane = (FillerPane) pane;
-            return fillerPane.getItems().get(paneSlot % fillerPane.getItems().size());
-        } else if (pane instanceof StaticPane) {
-            StaticPane staticPane = (StaticPane) pane;
-            return staticPane.getItems().get(getPanePositionFromSlot(pane, slot)); 
-        } else if (pane instanceof PaginatedPane) {
-            PaginatedPane paginatedPane = (PaginatedPane) pane;
-            return paginatedPane.getPageItems(paginatedPane.getPage()).get(paneSlot);
-        }
-
-        return null;
+        return pane.getHandler().getItem(this, slot, paneSlot);
     }
 
     public GUIItem getItem(int row, int col) {
@@ -211,31 +155,21 @@ public abstract class GUI extends DataHolder {
             return;
         }
 
-        if (pane instanceof FillerPane) {
-            FillerPane fillerPane = (FillerPane) pane;
-            fillerPane.getItems().set(paneSlots.get(pane).indexOf(slot) % fillerPane.getItems().size(), item);
-        } else if (pane instanceof StaticPane) {
-            StaticPane staticPane = (StaticPane) pane;
-            int paneSlot = paneSlots.get(pane).indexOf(slot);
-            staticPane.getItems().put(getPanePositionFromSlot(pane, slot), item); 
-        } else if (pane instanceof PaginatedPane) {
-            PaginatedPane paginatedPane = (PaginatedPane) pane;
-            int paneSlot = paneSlots.get(pane).indexOf(slot);
-            paginatedPane.getPageItems(paginatedPane.getPage()).set(paneSlot, item);
-        }
+        int paneSlot = paneSlots.get(pane).indexOf(slot);
+        if (paneSlot == -1) return;
+
+        pane.getHandler().setItem(this, item, slot, paneSlots.get(pane).indexOf(slot));
     }
 
     public void setItem(int row, int col, GUIItem item) {
         setItem(row * this.cols + col, item);
     }
 
-    private GUIPosition getPanePositionFromSlot(Pane pane, int slot) {
-        int row = (slot / cols) - pane.getPosition().row;
-        int col = (slot % cols) - pane.getPosition().col;
-        return new GUIPosition(row, col);
+    public int getRows() {
+        return rows;
     }
 
-    private int getSlotFromGUIPosition(Pane pane, GUIPosition pos) {
-        return pos.row * pane.getCols() + pos.col;
+    public int getCols() {
+        return cols;
     }
 }

@@ -1,5 +1,6 @@
 package me.schooltests.stgui.util;
 
+import me.schooltests.stgui.data.GUIPosition;
 import me.schooltests.stgui.panes.Pane;
 
 import java.util.ArrayList;
@@ -24,5 +25,15 @@ public final class Util {
         List<Integer> list = new ArrayList<>();
         for (int k = i; k <= j; k++) list.add(k);
         return list;
+    }
+
+    public static GUIPosition getPanePositionFromSlot(Pane pane, int slot, int rows, int cols) {
+        int row = (slot / cols) - pane.getPosition().row;
+        int col = (slot % cols) - pane.getPosition().col;
+        return new GUIPosition(row, col);
+    }
+
+    public static int getSlotFromGUIPosition(Pane pane, GUIPosition pos) {
+        return pos.row * pane.getCols() + pos.col;
     }
 }
