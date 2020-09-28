@@ -1,9 +1,0 @@
-name: STGUI
-version: "1.0"
-author: Itzdlg
-main: me.schooltests.stgui.Plugin
-api-version: "1.16"
-commands:
-  gui:
-    usage: /gui
-    description: gui

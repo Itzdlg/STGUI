@@ -49,7 +49,7 @@ public final class STGUI implements Listener {
                 GUI gui = OPENED.get(player);
                 if (gui == null
                         || event.getSlot() < 0
-                        || event.getRawSlot() > (gui.getInventory().getSize())
+                        || event.getRawSlot() >= (gui.getInventory().getSize())
                         || (!gui.getTitle().isEmpty() && event.getView().getTitle().isEmpty())
                         || !gui.getTitle().equals(event.getView().getTitle())) return;
 
@@ -57,6 +57,8 @@ public final class STGUI implements Listener {
                 if (item == null) return;
 
                 ItemClickEvent itemClickEvent = new ItemClickEvent(player, gui, item, event.getClick(), event.getSlot());
+                itemClickEvent.setCancelled(event.getRawSlot() < gui.getInventory().getSize());
+
                 Bukkit.getPluginManager().callEvent(itemClickEvent);
 
                 if (item.getClickEvent() != null) item.getClickEvent().accept(itemClickEvent);

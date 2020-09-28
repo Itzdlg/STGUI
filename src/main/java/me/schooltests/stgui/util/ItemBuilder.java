@@ -8,7 +8,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ItemBuilder {
@@ -52,7 +51,9 @@ public class ItemBuilder {
     public ItemBuilder lore(String... lore) {
         ItemMeta meta = item.getItemMeta();
         List<String> itemLore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-        itemLore.addAll(Arrays.asList(lore));
+        for (String l : lore) itemLore.add(ChatColor.translateAlternateColorCodes('&', l));
+
+        meta.setLore(itemLore);
         item.setItemMeta(meta);
         return this;
     }
