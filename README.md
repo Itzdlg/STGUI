@@ -93,4 +93,4 @@ gui.setItem(4, 7, new GUIItem(DefaultItems.FORWARD, (click) -> {
 gui.open(player);
 ```
 
-In Game: https://imgur.com/b2NHbGd<
+In Game: https://imgur.com/b2NHbGd
