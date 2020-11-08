@@ -162,7 +162,6 @@ public abstract class GUI extends DataHolder {
     }
 
     public void clear() {
-        System.out.println("clear");
         paneSlots.clear();
         slotToPane.clear();
         panes.clear();
